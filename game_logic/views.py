@@ -31,10 +31,18 @@ def index(request):
                 print(response_data)
                 return JsonResponse(response_data, status=200)
             except ValueError as e:
-                return JsonResponse({'error': f'Value error from database: {str(e)}'}, status=400, safe=False)
+                return JsonResponse({'error': f'Value error from database: {str(e)}'}, status=400)
             except Exception as e:
-                return JsonResponse({'error': f'Unexpected error: {str(e)}'}, status=500, safe=False)
+                return JsonResponse({'error': f'Unexpected error: {str(e)}'}, status=500)
         else:
-            return JsonResponse({'error': 'No user input provided'}, status=400, safe=False)
+            return JsonResponse({'error': 'No user input provided'}, status=400)
+
+    return JsonResponse({'message': 'Please send a POST request'}, status=405)
+
+
+@csrf_exempt
+def get_word_list(request):
+    if request.method == 'POST':
+        return JsonResponse(game.word_list, status=200, safe=False)
 
     return JsonResponse({'message': 'Please send a POST request'}, status=405, safe=False)
