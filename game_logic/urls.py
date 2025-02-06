@@ -3,4 +3,5 @@ from . import views
 
 urlpatterns = [
     path('', views.index),
+    path('request_word_list', views.get_word_list),
 ]
