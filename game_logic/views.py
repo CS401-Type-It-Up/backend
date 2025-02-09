@@ -17,7 +17,7 @@ def get_word_list(request):
 
         if level and num:
             try:
-                path = f"levels/level{level}/words"
+                path = f"wordlists/level{level}"
                 words = db_ref.child(path).get()
 
                 if not words:
