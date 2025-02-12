@@ -1,7 +1,7 @@
 import json
 
 from django.http import JsonResponse
-from .db import db_ref
+from config.db import db_ref
 from game_logic.game_logic import TypeGame
 
 # just for testing, need to delete when hosting
