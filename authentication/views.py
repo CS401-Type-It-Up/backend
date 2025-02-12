@@ -6,6 +6,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from config.db import db_ref
+from authentication.util import Fetch_from_Firebase
 
 @csrf_exempt
 def signup(request):
@@ -40,4 +41,13 @@ def signup(request):
 
         # Return 405 Method Not Allowed if the request method is not POST
     return JsonResponse({'message': 'Please send a POST request'}, status=405)
+
+# Login Validation
+def Login_Verify (userid, passwd) -> bool:
+    login_pass = False
+    db_ref = Fetch_from_Firebase("users")
+    users_data = db_ref.get()
+    user = [usr for usr in users_data.values() if usr["username"] == userid ]  # Fetch the user based on the username
+    if not user or passwd != str(user[0]['password']) : return JsonResponse({'message': 'The user id or password is incorrect. Login Denied!'}, status=401) # Validate the info
+    return JsonResponse({'message': "Login Successfully!"}, status=200)
 
