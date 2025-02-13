@@ -1,9 +1,8 @@
-import firebase_admin
-from firebase_admin import credentials, db
+import uuid
 
-def Fetch_from_Firebase(key):
-    cred = credentials.Certificate("config/firebase_key.json")
-    # firebase_admin.initialize_app(cred, {'databaseURL': 'https://typeitup-928b9-default-rtdb.firebaseio.com/'})
-    db_ref = db.reference(key)
-
-    return db_ref
+def generate_uuid():
+    """
+    Generate unique uuid for the user
+    """
+    unique_id = uuid.uuid4()
+    unique_id_str = str(unique_id)
