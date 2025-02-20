@@ -64,8 +64,6 @@ class GameUser:
             KeyError: Current Username is already existed
             KeyError: Current Email is already existed
         """
-        if not self._username or not self._password:
-            raise ValueError("Username or Password cannot be empty")
         if db_ref.child('users').child(self._username).get():
             raise KeyError("Current Username is already existed")
         if self._email and db_ref.child('users').order_by_child("email").equal_to(self._email).get():
@@ -80,6 +78,8 @@ class GameUser:
         """
         updated_data = self._to_dict()
         db_ref.update(updated_data)
+
+
         
        
             
