@@ -78,9 +78,3 @@ class GameUser:
         """
         updated_data = self._to_dict()
         db_ref.update(updated_data)
-
-
-        
-       
-            
-        
