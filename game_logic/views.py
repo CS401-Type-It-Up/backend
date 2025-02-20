@@ -6,32 +6,40 @@ from .db import db_ref
 
 # just for testing, need to delete when hosting
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 
 # just for testing, need to delete when hosting
 @csrf_exempt
+@require_http_methods(["POST"])
 def get_word_list(request):
-    if request.method == 'POST':
-        level = json.loads(request.body).get('level', None)
-        num = int(json.loads(request.body).get('num', None))
+    try:
+        data = json.loads(request.body)
+        level = data.get('level')
+        num = data.get('num')
 
         if level and num:
-            try:
-                path = f"wordlists/level{level}"
-                words = db_ref.child(path).get()
+            path = f"wordlists/level{level}"
+            words = db_ref.child(path).get()
 
-                if not words:
-                    raise ValueError(f"No words available for Level {level}.")
+            if not words:
+                return JsonResponse({
+                    'error': f'No words available for Level {level}'
+                }, status=404)
 
-                word_list = random.sample(words, min(num, len(words)))
-                print(f"Words loaded for Level {level}: {word_list}")
-
-                return JsonResponse(word_list, status=200, safe=False)
-            except ValueError as e:
-                return JsonResponse({'error': f'Value error from database: {str(e)}'}, status=400)
-            except Exception as e:
-                return JsonResponse({'error': f'Unexpected error: {str(e)}'}, status=500)
+            word_list = random.sample(words, min(num, len(words)))
+            
+            # Add console.log to debug response
+            print(f"Sending words to frontend: {word_list}")
+            
+            return JsonResponse({
+                'words': word_list  # Make sure words are in this format
+            }, status=200)
         else:
             return JsonResponse({'error': 'No parameter provided'}, status=400)
 
-    return JsonResponse({'message': 'Please send a POST request'}, status=405, safe=False)
+    except Exception as e:
+        print(f"Error in get_word_list: {str(e)}")  # Debug log
+        return JsonResponse({
+            'error': f'Server error: {str(e)}'
+        }, status=500)
