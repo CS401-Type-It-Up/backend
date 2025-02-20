@@ -9,20 +9,18 @@ class GameUser:
     """
     def __init__(
         self,
-        id         = "",
+        id = "",
         username   = "",
         password   = "",
         email      = "",
         created_at = ""
     ):
-        self._id         = id
+        # uuid will be created in create()
+        self._id = id
         self._username   = username
         self._password   = password
         self._email      = email
         self._created_at = created_at
-        
-        if not self._id:
-            self._id = generate_uuid()
             
         if not self._created_at:
             current_time = datetime.now()
@@ -68,7 +66,9 @@ class GameUser:
             raise KeyError("Current Username is already existed")
         if self._email and db_ref.child('users').order_by_child("email").equal_to(self._email).get():
             raise KeyError("Current Email is already existed")
-        
+
+        self._id = generate_uuid()
+
         new_user = self._to_dict()
         db_ref.child('users').child(self._username).set(new_user)
     
@@ -78,3 +78,38 @@ class GameUser:
         """
         updated_data = self._to_dict()
         db_ref.update(updated_data)
+
+    def login(self):
+        user_data = db_ref.child('users').child(self._username).get()
+
+        if not user_data:
+            raise KeyError('Username does not exist')
+
+        if user_data.get("password") != self._password:
+            raise KeyError("Incorrect password")
+
+        self._id = user_data.get("id")
+        self._created_at = user_data.get("created_at")
+
+    def save_progress(self, data):
+        level = data.get('level')
+        wordlist = data.get('wordlist')
+        life = data.get('life')
+        difficulty = data.get('difficulty')
+
+        if not level or not wordlist or not life or not difficulty:
+            raise ValueError("Missing required progress data")
+
+        user_data = db_ref.child('users').child(self._username).get()
+
+        if not user_data:
+            raise KeyError('User does not exist')
+
+        progress = {
+            "level": level,
+            "wordlist": wordlist,
+            "life": life,
+            "difficulty": difficulty,
+        }
+
+        db_ref.child('progress').child(self._username).set(progress)
