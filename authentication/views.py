@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
-from authentication.models import GameUser
+from authentication.game_user import GameUser
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -58,9 +58,17 @@ class UserLogin(APIView):
                 "message": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
+        progress = {
+            "level": current_user.get_level(),
+            "wordlist": current_user.get_wordlist(),
+            "life": current_user.get_life(),
+            "difficulty": current_user.get_difficulty(),
+        }
+
         return Response({
             "success": True,
-            "user_id": current_user.get_id(),
+            "username": current_user.get_username(),
+            "progress": progress,
             "message": "Login successful",
         })
 

@@ -1,117 +1,32 @@
-from datetime import datetime
-
-from authentication.util import generate_uuid
-from config.db import db_ref
-
-class GameUser:
+class ProgressModel:
     """
-    Game User Object
+    Progress model for storing user game progress.
     """
-    def __init__(
-        self,
-        id = "",
-        username   = "",
-        password   = "",
-        email      = "",
-        level      = 1,
-        wordlist=None,
-        life=3,
-        difficulty="easy",
-    ):
-        # uuid will be created in create()
-        self._id = id
-        self._username   = username
-        self._password   = password
-        self._email      = email
+    def __init__(self, level=1, wordlist=None, life=10, difficulty="easy"):
         self.level = level
-        self.wordlist = wordlist
+        self.wordlist = wordlist if wordlist is not None else []
         self.life = life
         self.difficulty = difficulty
 
-    def _to_dict(self):
+    def to_dict(self):
+        """
+        Convert the progress model to a dictionary that can be saved to the database.
+        """
         return {
-            "id"        : self._id,
-            "username"  : self._username,
-            "password"  : self._password,
-            "email"     : self._email,
-            "created_at": self._created_at
+            "level": self.level,
+            "wordlist": self.wordlist,
+            "life": self.life,
+            "difficulty": self.difficulty,
         }
 
-    def set_email(self, email):
-        self._email = email
-    
-    def get_email(self):
-        return self._email
-    
-    def get_username(self):
-        return self._username
-    
-    def get_password(self):
-        return self._password
-    
-    def get_id(self):
-        return self._id
-    
-    def create(self):
+    @classmethod
+    def from_dict(cls, data):
         """
-        Create a "new user to the firebase" based on the information provided
-        Username, password and ID is required
-        Email is not required but will be checked if provided
-        created_at is auto filled
-
-        Raises:
-            ValueError: Username or Password cannot be empty
-            KeyError: Current Username is already existed
-            KeyError: Current Email is already existed
+        Create a ProgressModel instance from a dictionary.
         """
-        if db_ref.child('users').child(self._username).get():
-            raise KeyError("Current Username is already existed")
-        if self._email and db_ref.child('users').order_by_child("email").equal_to(self._email).get():
-            raise KeyError("Current Email is already existed")
-
-        self._id = generate_uuid()
-
-        new_user = self._to_dict()
-        db_ref.child('users').child(self._username).set(new_user)
-    
-    def save(self):
-        """
-        Update the user information and save it to firebase
-        """
-        updated_data = self._to_dict()
-        db_ref.update(updated_data)
-
-    def login(self):
-        user_data = db_ref.child('users').child(self._username).get()
-
-        if not user_data:
-            raise KeyError('Username does not exist')
-
-        if user_data.get("password") != self._password:
-            raise KeyError("Incorrect password")
-
-        self._id = user_data.get("id")
-        self._created_at = user_data.get("created_at")
-
-    def save_progress(self, data):
-        level = data.get('level')
-        wordlist = data.get('wordlist')
-        life = data.get('life')
-        difficulty = data.get('difficulty')
-
-        if not level or not wordlist or not life or not difficulty:
-            raise ValueError("Missing required progress data")
-
-        user_data = db_ref.child('users').child(self._username).get()
-
-        if not user_data:
-            raise KeyError('User does not exist')
-
-        progress = {
-            "level": level,
-            "wordlist": wordlist,
-            "life": life,
-            "difficulty": difficulty,
-        }
-
-        db_ref.child('progress').child(self._username).set(progress)
+        return cls(
+            level=data.get("level", 1),
+            wordlist=data.get("wordlist", []),
+            life=data.get("life", 10),
+            difficulty=data.get("difficulty", "easy")
+        )
