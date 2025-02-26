@@ -1,15 +1,17 @@
 import json
 import random
-
 from django.http import JsonResponse
-from .db import db_ref
-
-# just for testing, need to delete when hosting
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+def index(request):
+    return render(request, 'index.html')
 
-# just for testing, need to delete when hosting
+def play(request):
+    difficulty = request.GET.get('difficulty', 'easy')
+    return render(request, 'gameplay.html', {'difficulty': difficulty})
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_word_list(request):
@@ -19,27 +21,25 @@ def get_word_list(request):
         num = data.get('num')
 
         if level and num:
-            path = f"wordlists/level{level}"
-            words = db_ref.child(path).get()
-
-            if not words:
-                return JsonResponse({
-                    'error': f'No words available for Level {level}'
-                }, status=404)
-
+            # For testing, return some sample words
+            word_lists = {
+                1: ["HELLO", "WORLD", "PYTHON", "DJANGO", "CODING"],
+                2: ["REACT", "SWIFT", "KOTLIN", "JAVA", "RUST"],
+                3: ["DOCKER", "LINUX", "CLOUD", "SERVER", "DATA"],
+                4: ["NEURAL", "LEARN", "DEEP", "MIND", "BRAIN"]
+            }
+            
+            words = word_lists.get(level, ["TEST", "WORD"])
             word_list = random.sample(words, min(num, len(words)))
             
-            # Add console.log to debug response
-            print(f"Sending words to frontend: {word_list}")
-            
             return JsonResponse({
-                'words': word_list  # Make sure words are in this format
+                'words': word_list
             }, status=200)
         else:
             return JsonResponse({'error': 'No parameter provided'}, status=400)
 
     except Exception as e:
-        print(f"Error in get_word_list: {str(e)}")  # Debug log
+        print(f"Error in get_word_list: {str(e)}")
         return JsonResponse({
             'error': f'Server error: {str(e)}'
-        }, status=500)
+        }, status=500) 

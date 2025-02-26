@@ -61,7 +61,7 @@ ROOT_URLCONF = 'type_it_up_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR.parent, 'frontend')],  # Points to frontend directory
+        'DIRS': ['../frontend'],  # Points to frontend directory using relative path
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -117,9 +117,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Update STATICFILES_DIRS to point directly to frontend
+# Update STATICFILES_DIRS to use relative path
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR.parent, 'frontend'),  # Points to frontend directory directly
+    '../frontend/static',  # Points to frontend/static directory using relative path
 ]
 
 # Optional: for production static file collection
