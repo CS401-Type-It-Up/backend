@@ -5,6 +5,8 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from .db import db_ref
+
 def index(request):
     return render(request, 'index.html')
 
@@ -21,20 +23,23 @@ def get_word_list(request):
         num = data.get('num')
 
         if level and num:
-            # For testing, return some sample words
-            word_lists = {
-                1: ["HELLO", "WORLD", "PYTHON", "DJANGO", "CODING"],
-                2: ["REACT", "SWIFT", "KOTLIN", "JAVA", "RUST"],
-                3: ["DOCKER", "LINUX", "CLOUD", "SERVER", "DATA"],
-                4: ["NEURAL", "LEARN", "DEEP", "MIND", "BRAIN"]
-            }
-            
-            words = word_lists.get(level, ["TEST", "WORD"])
+            path = f"wordlists/level{level}"
+            words = db_ref.child(path).get()
+
+            if not words:
+                return JsonResponse({
+                    'error': f'No words available for Level {level}'
+                }, status=404)
+
             word_list = random.sample(words, min(num, len(words)))
-            
+
+            # Add console.log to debug response
+            print(f"Sending words to frontend: {word_list}")
+
             return JsonResponse({
-                'words': word_list
+                'words': word_list  # Make sure words are in this format
             }, status=200)
+
         else:
             return JsonResponse({'error': 'No parameter provided'}, status=400)
 
