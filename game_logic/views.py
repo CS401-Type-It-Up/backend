@@ -1,48 +1,53 @@
 import json
-
+import random
 from django.http import JsonResponse
-from config.db import db_ref
-from game_logic.game_logic import TypeGame
-
-# just for testing, need to delete when hosting
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
-try:
-    game = TypeGame(db_ref)
-    game.start_game()
-
-except ValueError as e:
-    game = None
-    error_message = str(e)
-except Exception as e:
-    game = None
-    error_message = f"Unexpected error during game setup: {str(e)}"
+from config.db import db_ref
 
 
-# just for testing, need to delete when hosting
-@csrf_exempt
 def index(request):
-    if request.method == 'POST':
-        data = json.loads(request.body).get('user_input', None)
+    return render(request, 'index.html')
 
-        if data:
-            try:
-                response_data = game.process_user_input(data)
-                print(response_data)
-                return JsonResponse(response_data, status=200)
-            except ValueError as e:
-                return JsonResponse({'error': f'Value error from database: {str(e)}'}, status=400)
-            except Exception as e:
-                return JsonResponse({'error': f'Unexpected error: {str(e)}'}, status=500)
-        else:
-            return JsonResponse({'error': 'No user input provided'}, status=400)
 
-    return JsonResponse({'message': 'Please send a POST request'}, status=405)
+def play(request):
+    difficulty = request.GET.get('difficulty', 'easy')
+    return render(request, 'gameplay.html', {'difficulty': difficulty})
 
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def get_word_list(request):
-    if request.method == 'POST':
-        return JsonResponse(game.word_list, status=200, safe=False)
+    try:
+        data = json.loads(request.body)
+        level = data.get('level')
+        num = data.get('num')
 
-    return JsonResponse({'message': 'Please send a POST request'}, status=405, safe=False)
+        if level and num:
+            path = f"wordlists/level{level}"
+            words = db_ref.child(path).get()
+
+            if not words:
+                return JsonResponse({
+                    'error': f'No words available for Level {level}'
+                }, status=404)
+
+            word_list = random.sample(words, min(num, len(words)))
+
+            # Add console.log to debug response
+            print(f"Sending words to frontend: {word_list}")
+
+            return JsonResponse({
+                'words': word_list  # Make sure words are in this format
+            }, status=200)
+
+        else:
+            return JsonResponse({'error': 'No parameter provided'}, status=400)
+
+    except Exception as e:
+        print(f"Error in get_word_list: {str(e)}")
+        return JsonResponse({
+            'error': f'Server error: {str(e)}'
+        }, status=500)

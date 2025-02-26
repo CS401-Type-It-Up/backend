@@ -13,19 +13,21 @@ class GameUser:
         username   = "",
         password   = "",
         email      = "",
-        created_at = ""
+        level      = 1,
+        wordlist=None,
+        life=3,
+        difficulty="easy",
     ):
         # uuid will be created in create()
         self._id = id
         self._username   = username
         self._password   = password
         self._email      = email
-        self._created_at = created_at
-            
-        if not self._created_at:
-            current_time = datetime.now()
-            self._created_at = current_time.strftime("%H:%M:%S")
-    
+        self.level = level
+        self.wordlist = wordlist
+        self.life = life
+        self.difficulty = difficulty
+
     def _to_dict(self):
         return {
             "id"        : self._id,
