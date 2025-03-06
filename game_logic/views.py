@@ -14,6 +14,19 @@ def play(request):
     difficulty = request.GET.get('difficulty', 'easy')
     return render(request, 'gameplay.html', {'difficulty': difficulty})
 
+def gameplay(request):
+    difficulty = request.GET.get('difficulty', 'easy')
+    hearts = {
+        'easy': 10,
+        'medium': 7,
+        'hard': 5
+    }
+    context = {
+        'difficulty': difficulty,
+        'hearts': hearts[difficulty]
+    }
+    return render(request, 'gameplay.html', context)
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_word_list(request):
@@ -21,6 +34,7 @@ def get_word_list(request):
         data = json.loads(request.body)
         level = data.get('level')
         num = data.get('num')
+        difficulty = data.get('difficulty', 'easy')  # Get difficulty from request
 
         if level and num:
             path = f"wordlists/level{level}"
@@ -32,12 +46,15 @@ def get_word_list(request):
                 }, status=404)
 
             word_list = random.sample(words, min(num, len(words)))
-
-            # Add console.log to debug response
-            print(f"Sending words to frontend: {word_list}")
+            hearts = {
+                'easy': 10,
+                'medium': 7,
+                'hard': 5
+            }
 
             return JsonResponse({
-                'words': word_list  # Make sure words are in this format
+                'words': word_list,
+                'hearts': hearts[difficulty]  # Send hearts count based on difficulty
             }, status=200)
 
         else:
