@@ -2,11 +2,12 @@ class ProgressModel:
     """
     Progress model for storing user game progress.
     """
-    def __init__(self, level=1, wordlist=None, life=10, difficulty="easy"):
+    def __init__(self, level=1, wordlist=None, life=10, word_index=0, char_index=0):
         self.level = level
         self.wordlist = wordlist if wordlist is not None else []
         self.life = life
-        self.difficulty = difficulty
+        self.word_index = word_index
+        self.char_index = char_index
 
     def to_dict(self):
         """
@@ -16,7 +17,8 @@ class ProgressModel:
             "level": self.level,
             "wordlist": self.wordlist,
             "life": self.life,
-            "difficulty": self.difficulty,
+            "word_index": self.word_index,
+            "char_index": self.char_index,
         }
 
     @classmethod
@@ -28,5 +30,6 @@ class ProgressModel:
             level=data.get("level", 1),
             wordlist=data.get("wordlist", []),
             life=data.get("life", 10),
-            difficulty=data.get("difficulty", "easy")
+            word_index=data.get("word_index"),
+            char_index=data.get("char_index"),
         )
